@@ -1,8 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { ArrowRight, Instagram, MapPin, Mail, Phone, Sparkles, Check } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowRight, Instagram, MapPin, Mail, Phone, Sparkles, Check, Clock, Calendar as CalendarIcon, Copy, Loader2 } from "lucide-react";
 import heroBg from "@/assets/african-woman.png.asset.json";
 import { toast } from "sonner";
+import { createBooking, getAvailability, getServices } from "@/lib/booking.functions";
+
+const NAIROBI_TZ = "Africa/Nairobi";
+function formatNairobi(iso: string, opts: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: NAIROBI_TZ, ...opts }).format(new Date(iso));
+}
+function todayInNairobi(): string {
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: NAIROBI_TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+  return fmt.format(new Date());
+}
+function addDaysISO(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const t = Date.UTC(y, m - 1, d) + days * 86400000;
+  const dt = new Date(t);
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
