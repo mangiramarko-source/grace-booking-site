@@ -52,9 +52,10 @@ function BackgroundLayer() {
       <img
         src={heroBg.url}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.14] [filter:grayscale(0.2)_contrast(1.05)]"
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-60"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/55 to-background/85" />
+      <div className="absolute inset-0 bg-background/30" />
       <div className="absolute inset-0 glow-bg" />
     </div>
   );
