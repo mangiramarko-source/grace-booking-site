@@ -83,7 +83,7 @@ function Nav() {
             <a key={l.href} href={l.href} className="transition hover:text-foreground">{l.label}</a>
           ))}
         </nav>
-        <a href="#booking" className="hidden md:inline-flex items-center gap-2 rounded-full bg-cream px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+        <a href="/book" className="hidden md:inline-flex items-center gap-2 rounded-full bg-cream px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
           Book
         </a>
         <button
@@ -105,7 +105,7 @@ function Nav() {
                 {l.label}
               </a>
             ))}
-            <a href="#booking" onClick={() => setOpen(false)} className="mt-2 inline-flex items-center justify-center rounded-full bg-cream px-5 py-3 text-sm font-medium text-primary-foreground">
+            <a href="/book" onClick={() => setOpen(false)} className="mt-2 inline-flex items-center justify-center rounded-full bg-cream px-5 py-3 text-sm font-medium text-primary-foreground">
               Book a chair
             </a>
           </div>
@@ -132,7 +132,7 @@ function Hero() {
           Hair by Makanye is a Nairobi studio dedicated to protective styling, locs and editorial finishes — built around your hair, your story and your time.
         </p>
         <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <a href="#booking" className="inline-flex items-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+          <a href="/book" className="inline-flex items-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
             Book a chair <ArrowRight className="h-4 w-4" />
           </a>
           <a href="#services" className="text-sm text-foreground/80 hover:text-foreground">Explore the menu</a>
@@ -219,7 +219,7 @@ function Services() {
                   <span key={t} className="rounded-full bg-secondary/60 px-3 py-1 text-xs text-foreground/80">{t}</span>
                 ))}
               </div>
-              <a href="#booking" className="mt-6 inline-flex items-center gap-2 text-sm text-accent transition group-hover:gap-3">
+              <a href="/book" className="mt-6 inline-flex items-center gap-2 text-sm text-accent transition group-hover:gap-3">
                 Book this service <ArrowRight className="h-4 w-4" />
               </a>
             </article>
@@ -265,13 +265,6 @@ function Why() {
 }
 
 function Booking() {
-  const [submitted, setSubmitted] = useState(false);
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitted(true);
-    toast.success("Booking request sent. Makanye will be in touch shortly.");
-  };
-  const today = new Date().toISOString().split("T")[0];
   return (
     <section id="booking" className="px-5 py-24 md:px-8 md:py-32">
       <div className="mx-auto max-w-3xl">
@@ -284,72 +277,20 @@ function Booking() {
             Tell us about your hair and the style you have in mind. We'll confirm timing, pricing and prep within 24 hours.
           </p>
 
-          {submitted ? (
-            <div className="mt-8 rounded-2xl border border-accent/40 bg-accent/10 p-6 text-center">
-              <Sparkles className="mx-auto h-6 w-6 text-accent" />
-              <p className="mt-3 font-display text-2xl">Request received</p>
-              <p className="mt-2 text-sm text-muted-foreground">Look out for a WhatsApp or email from Makanye soon.</p>
-            </div>
-          ) : (
-            <form onSubmit={onSubmit} className="mt-8 grid gap-5 sm:grid-cols-2">
-              <Field label="Full name" name="name" required />
-              <Field label="Phone / WhatsApp" name="phone" type="tel" required />
-              <Field label="Email" name="email" type="email" required className="sm:col-span-2" />
-              <SelectField label="Service" name="service" options={services.map((s) => s.name)} />
-              <Field label="Preferred date" name="date" type="date" min={today} />
-              <div className="sm:col-span-2">
-                <label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">Tell us about your hair & style</label>
-                <textarea
-                  name="notes"
-                  rows={4}
-                  placeholder="Current length, last service, inspiration..."
-                  className="w-full rounded-xl border border-border/60 bg-input/40 px-4 py-3 text-sm outline-none transition focus:border-accent/60"
-                />
-              </div>
-              <button
-                type="submit"
-                className="sm:col-span-2 inline-flex items-center justify-center gap-2 rounded-full bg-cream px-6 py-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-              >
-                Send booking request <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-          )}
+          <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">Live availability, instant confirmation, and a link to manage your appointment.</p>
+            <a href="/book" className="inline-flex items-center justify-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+              Open booking page <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function Field({ label, name, type = "text", required, className = "", min }: { label: string; name: string; type?: string; required?: boolean; className?: string; min?: string }) {
-  return (
-    <div className={className}>
-      <label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">{label}</label>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        min={min}
-        className="w-full rounded-xl border border-border/60 bg-input/40 px-4 py-3 text-sm outline-none transition focus:border-accent/60"
-      />
-    </div>
-  );
-}
 
-function SelectField({ label, name, options }: { label: string; name: string; options: string[] }) {
-  return (
-    <div>
-      <label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">{label}</label>
-      <select
-        name={name}
-        className="w-full rounded-xl border border-border/60 bg-input/40 px-4 py-3 text-sm outline-none transition focus:border-accent/60"
-      >
-        {options.map((o) => (
-          <option key={o} value={o} className="bg-background">{o}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
+
 
 function Contact() {
   return (
