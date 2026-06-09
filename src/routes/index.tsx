@@ -284,36 +284,12 @@ function Booking() {
             Tell us about your hair and the style you have in mind. We'll confirm timing, pricing and prep within 24 hours.
           </p>
 
-          {submitted ? (
-            <div className="mt-8 rounded-2xl border border-accent/40 bg-accent/10 p-6 text-center">
-              <Sparkles className="mx-auto h-6 w-6 text-accent" />
-              <p className="mt-3 font-display text-2xl">Request received</p>
-              <p className="mt-2 text-sm text-muted-foreground">Look out for a WhatsApp or email from Makanye soon.</p>
-            </div>
-          ) : (
-            <form onSubmit={onSubmit} className="mt-8 grid gap-5 sm:grid-cols-2">
-              <Field label="Full name" name="name" required />
-              <Field label="Phone / WhatsApp" name="phone" type="tel" required />
-              <Field label="Email" name="email" type="email" required className="sm:col-span-2" />
-              <SelectField label="Service" name="service" options={services.map((s) => s.name)} />
-              <Field label="Preferred date" name="date" type="date" min={today} />
-              <div className="sm:col-span-2">
-                <label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">Tell us about your hair & style</label>
-                <textarea
-                  name="notes"
-                  rows={4}
-                  placeholder="Current length, last service, inspiration..."
-                  className="w-full rounded-xl border border-border/60 bg-input/40 px-4 py-3 text-sm outline-none transition focus:border-accent/60"
-                />
-              </div>
-              <button
-                type="submit"
-                className="sm:col-span-2 inline-flex items-center justify-center gap-2 rounded-full bg-cream px-6 py-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-              >
-                Send booking request <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-          )}
+          <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">Live availability, instant confirmation, and a link to manage your appointment.</p>
+            <a href="/book" className="inline-flex items-center justify-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+              Open booking page <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </section>
