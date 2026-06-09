@@ -31,32 +31,26 @@ const principles = [
 
 function Index() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
       <BackgroundLayer />
-      <Nav />
-      <Hero />
-      <Marquee />
-      <About />
-      <Services />
-      <Why />
-      <Booking />
-      <Contact />
-      <Footer />
+      <div className="relative z-10">
+        <Nav />
+        <Hero />
+        <Marquee />
+        <About />
+        <Services />
+        <Why />
+        <Booking />
+        <Contact />
+        <Footer />
+      </div>
     </div>
   );
 }
 
 function BackgroundLayer() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-      <img
-        src={heroBg.url}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.14] [filter:grayscale(0.2)_contrast(1.05)]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
-      <div className="absolute inset-0 glow-bg" />
-    </div>
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 glow-bg" />
   );
 }
 
