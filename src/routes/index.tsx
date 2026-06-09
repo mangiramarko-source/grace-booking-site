@@ -265,13 +265,6 @@ function Why() {
 }
 
 function Booking() {
-  const [submitted, setSubmitted] = useState(false);
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitted(true);
-    toast.success("Booking request sent. Makanye will be in touch shortly.");
-  };
-  const today = new Date().toISOString().split("T")[0];
   return (
     <section id="booking" className="px-5 py-24 md:px-8 md:py-32">
       <div className="mx-auto max-w-3xl">
