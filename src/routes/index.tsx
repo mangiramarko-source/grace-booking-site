@@ -56,6 +56,13 @@ function BackgroundLayer() {
 
 function Nav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const links = [
     { href: "#about", label: "About" },
     { href: "#services", label: "Services" },
@@ -63,19 +70,25 @@ function Nav() {
     { href: "#contact", label: "Contact" },
   ];
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-md bg-background/60 border-b border-border/40">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+    <header
+      className={`fixed left-0 right-0 z-40 px-4 transition-all duration-500 ease-out ${
+        scrolled
+          ? "top-3 md:top-5 opacity-100 translate-y-0 pointer-events-auto"
+          : "top-0 -translate-y-4 opacity-0 pointer-events-none"
+      }`}
+    >
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 rounded-full border border-border/50 bg-background/70 px-3 py-2 pl-4 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl md:px-4 md:py-2.5 md:pl-6">
         <a href="#" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-cream text-primary-foreground font-display font-bold">M</span>
-          <span className="font-display text-lg font-semibold tracking-tight">Makanye<span className="text-accent">.</span></span>
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-cream text-primary-foreground font-display text-sm font-bold">M</span>
+          <span className="font-display text-base font-semibold tracking-tight">Makanye<span className="text-accent">.</span></span>
         </a>
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+        <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
           {links.map((l) => (
             <a key={l.href} href={l.href} className="transition hover:text-foreground">{l.label}</a>
           ))}
         </nav>
-        <a href="#booking" className="hidden md:inline-flex items-center gap-2 rounded-full bg-cream px-5 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90">
-          Book a chair
+        <a href="#booking" className="hidden md:inline-flex items-center gap-2 rounded-full bg-cream px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+          Book
         </a>
         <button
           aria-label="Menu"
@@ -89,7 +102,7 @@ function Nav() {
         </button>
       </div>
       {open && (
-        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur">
+        <div className="md:hidden mt-2 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl animate-fade-in">
           <div className="flex flex-col px-5 py-4">
             {links.map((l) => (
               <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="py-3 text-base text-muted-foreground hover:text-foreground">
