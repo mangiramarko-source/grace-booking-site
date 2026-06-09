@@ -289,36 +289,8 @@ function Booking() {
   );
 }
 
-function Field({ label, name, type = "text", required, className = "", min }: { label: string; name: string; type?: string; required?: boolean; className?: string; min?: string }) {
-  return (
-    <div className={className}>
-      <label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">{label}</label>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        min={min}
-        className="w-full rounded-xl border border-border/60 bg-input/40 px-4 py-3 text-sm outline-none transition focus:border-accent/60"
-      />
-    </div>
-  );
-}
 
-function SelectField({ label, name, options }: { label: string; name: string; options: string[] }) {
-  return (
-    <div>
-      <label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">{label}</label>
-      <select
-        name={name}
-        className="w-full rounded-xl border border-border/60 bg-input/40 px-4 py-3 text-sm outline-none transition focus:border-accent/60"
-      >
-        {options.map((o) => (
-          <option key={o} value={o} className="bg-background">{o}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
+
 
 function Contact() {
   return (
