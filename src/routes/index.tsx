@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Instagram, MapPin, Mail, Phone, Sparkles, Check } from "lucide-react";
 import heroBg from "@/assets/african-woman.png.asset.json";
 import { toast } from "sonner";
