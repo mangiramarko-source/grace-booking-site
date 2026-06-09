@@ -33,29 +33,30 @@ function Index() {
   return (
     <div className="relative min-h-screen text-foreground">
       <BackgroundLayer />
-      <Nav />
-      <Hero />
-      <Marquee />
-      <About />
-      <Services />
-      <Why />
-      <Booking />
-      <Contact />
-      <Footer />
+      <div className="relative z-10">
+        <Nav />
+        <Hero />
+        <Marquee />
+        <About />
+        <Services />
+        <Why />
+        <Booking />
+        <Contact />
+        <Footer />
+      </div>
     </div>
   );
 }
 
 function BackgroundLayer() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
       <img
         src={heroBg.url}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-60"
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-70"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/55 to-background/85" />
-      <div className="absolute inset-0 bg-background/30" />
       <div className="absolute inset-0 glow-bg" />
     </div>
   );
