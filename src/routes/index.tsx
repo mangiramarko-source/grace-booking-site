@@ -101,7 +101,7 @@ function Nav() {
             <a key={l.href} href={l.href} className="transition hover:text-foreground">{l.label}</a>
           ))}
         </nav>
-        <a href="/book" className="hidden md:inline-flex items-center gap-2 rounded-full bg-cream px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+        <a href="#booking" className="hidden md:inline-flex items-center gap-2 rounded-full bg-cream px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
           Book
         </a>
         <button
@@ -123,7 +123,7 @@ function Nav() {
                 {l.label}
               </a>
             ))}
-            <a href="/book" onClick={() => setOpen(false)} className="mt-2 inline-flex items-center justify-center rounded-full bg-cream px-5 py-3 text-sm font-medium text-primary-foreground">
+            <a href="#booking" onClick={() => setOpen(false)} className="mt-2 inline-flex items-center justify-center rounded-full bg-cream px-5 py-3 text-sm font-medium text-primary-foreground">
               Book a chair
             </a>
           </div>
@@ -150,7 +150,7 @@ function Hero() {
           Hair by Makanye is a Nairobi studio dedicated to protective styling, locs and editorial finishes — built around your hair, your story and your time.
         </p>
         <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <a href="/book" className="inline-flex items-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+          <a href="#booking" className="inline-flex items-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
             Book a chair <ArrowRight className="h-4 w-4" />
           </a>
           <a href="#services" className="text-sm text-foreground/80 hover:text-foreground">Explore the menu</a>
@@ -237,7 +237,7 @@ function Services() {
                   <span key={t} className="rounded-full bg-secondary/60 px-3 py-1 text-xs text-foreground/80">{t}</span>
                 ))}
               </div>
-              <a href="/book" className="mt-6 inline-flex items-center gap-2 text-sm text-accent transition group-hover:gap-3">
+              <a href="#booking" className="mt-6 inline-flex items-center gap-2 text-sm text-accent transition group-hover:gap-3">
                 Book this service <ArrowRight className="h-4 w-4" />
               </a>
             </article>
