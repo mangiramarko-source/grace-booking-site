@@ -50,15 +50,7 @@ function Index() {
 
 function BackgroundLayer() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-      <img
-        src={heroBg.url}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-70"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/55 to-background/85" />
-      <div className="absolute inset-0 glow-bg" />
-    </div>
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 glow-bg" />
   );
 }
 
