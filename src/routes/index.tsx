@@ -71,11 +71,7 @@ function Nav() {
   ];
   return (
     <header
-      className={`fixed left-0 right-0 z-40 px-4 transition-all duration-500 ease-out ${
-        scrolled
-          ? "top-3 md:top-5 opacity-100 translate-y-0 pointer-events-auto"
-          : "top-0 -translate-y-4 opacity-0 pointer-events-none"
-      }`}
+      className={`fixed left-0 right-0 z-40 px-4 transition-all duration-500 ease-out top-3 md:top-5 opacity-100 translate-y-0 pointer-events-auto`}
     >
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 rounded-full border border-border/50 bg-background/70 px-3 py-2 pl-4 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl md:px-4 md:py-2.5 md:pl-6">
         <a href="#" className="flex items-center gap-2">
