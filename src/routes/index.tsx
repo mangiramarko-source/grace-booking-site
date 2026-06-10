@@ -419,37 +419,86 @@ function Booking() {
                       <ChevronDown className="h-5 w-5 text-muted-foreground" />
                     </button>
                   );
-                  const calendar = (
+                  const handleSelect = (d?: Date) => {
+                    if (!d) return;
+                    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                    setDate(iso);
+                    setSlot(null);
+                  };
+                  const mobileCalendar = (
                     <Calendar
                       mode="single"
                       selected={dateObj}
-                      onSelect={(d) => {
-                        if (!d) return;
-                        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-                        setDate(iso);
-                        setSlot(null);
-                        setDateOpen(false);
-                      }}
+                      onSelect={handleSelect}
+                      disabled={{ before: today, after: maxDate }}
+                      initialFocus
+                      className="w-full p-0 pointer-events-auto [--cell-size:2.5rem]"
+                      classNames={{ root: "w-full", months: "w-full flex-col", month: "w-full flex flex-col gap-3" }}
+                    />
+                  );
+                  const desktopCalendar = (
+                    <Calendar
+                      mode="single"
+                      selected={dateObj}
+                      onSelect={(d) => { handleSelect(d); setDateOpen(false); }}
                       disabled={{ before: today, after: maxDate }}
                       initialFocus
                       className="p-3 pointer-events-auto"
                     />
                   );
+                  const slotsCount = availability.data?.slots.length ?? 0;
+                  const reason = availability.data?.reason;
+                  const previewSlots = availability.data?.slots.slice(0, 6) ?? [];
                   return isMobile ? (
                     <Drawer open={dateOpen} onOpenChange={setDateOpen}>
                       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-                      <DrawerContent className="max-h-[85vh]">
+                      <DrawerContent className="max-h-[92vh]">
                         <DrawerHeader>
                           <DrawerTitle className="font-display text-xl">Pick a date</DrawerTitle>
                         </DrawerHeader>
-                        <div className="flex justify-center px-4 pb-8">{calendar}</div>
+                        <div className="px-4">{mobileCalendar}</div>
+                        <div className="border-t border-border/50 mt-4 px-4 py-4">
+                          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                            {new Intl.DateTimeFormat("en", { weekday: "long", day: "numeric", month: "long" }).format(dateObj)}
+                          </div>
+                          {!serviceId ? (
+                            <p className="text-sm text-muted-foreground">Choose a service to see availability.</p>
+                          ) : availability.isLoading ? (
+                            <div className="h-10 animate-pulse rounded-lg bg-muted/30" />
+                          ) : reason === "closed" ? (
+                            <p className="text-sm text-muted-foreground">Closed this day.</p>
+                          ) : reason === "blocked" ? (
+                            <p className="text-sm text-muted-foreground">The studio is unavailable this date.</p>
+                          ) : slotsCount === 0 ? (
+                            <p className="text-sm text-muted-foreground">Fully booked. Try another date.</p>
+                          ) : (
+                            <>
+                              <p className="text-sm text-foreground/90 mb-2">{slotsCount} time{slotsCount === 1 ? "" : "s"} available</p>
+                              <div className="flex flex-wrap gap-2">
+                                {previewSlots.map((iso) => (
+                                  <span key={iso} className="rounded-md border border-border/50 bg-background/40 px-2.5 py-1 text-xs text-foreground/80">
+                                    {formatNairobi(iso, { hour: "2-digit", minute: "2-digit", hour12: false })}
+                                  </span>
+                                ))}
+                                {slotsCount > previewSlots.length && (
+                                  <span className="text-xs text-muted-foreground self-center">+{slotsCount - previewSlots.length} more</span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                          <DrawerClose asChild>
+                            <button className="mt-5 w-full rounded-xl bg-accent px-4 py-3 text-sm font-medium text-accent-foreground">
+                              Done
+                            </button>
+                          </DrawerClose>
+                        </div>
                       </DrawerContent>
                     </Drawer>
                   ) : (
                     <Popover open={dateOpen} onOpenChange={setDateOpen}>
                       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
                       <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                        {calendar}
+                        {desktopCalendar}
                       </PopoverContent>
                     </Popover>
                   );
