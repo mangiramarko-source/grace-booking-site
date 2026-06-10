@@ -462,7 +462,7 @@ function Booking() {
                             {new Intl.DateTimeFormat("en", { weekday: "long", day: "numeric", month: "long" }).format(dateObj)}
                           </div>
                           {!serviceId ? (
-                            <p className="text-sm text-muted-foreground">Choose a service to see availability.</p>
+                            <p className="text-sm text-muted-foreground">​</p>
                           ) : availability.isLoading ? (
                             <div className="h-10 animate-pulse rounded-lg bg-muted/30" />
                           ) : reason === "closed" ? (
