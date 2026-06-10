@@ -404,8 +404,8 @@ function Booking() {
               {/* Date */}
               <div>
                 <SectionLabel n={2} title="Pick a date" />
-                <Popover open={dateOpen} onOpenChange={setDateOpen}>
-                  <PopoverTrigger asChild>
+                {(() => {
+                  const trigger = (
                     <button className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border">
                       <div className="flex items-center gap-3">
                         <CalendarIcon className="h-5 w-5 text-accent" />
@@ -418,8 +418,8 @@ function Booking() {
                       </div>
                       <ChevronDown className="h-5 w-5 text-muted-foreground" />
                     </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                  );
+                  const calendar = (
                     <Calendar
                       mode="single"
                       selected={dateObj}
@@ -434,9 +434,28 @@ function Booking() {
                       initialFocus
                       className="p-3 pointer-events-auto"
                     />
-                  </PopoverContent>
-                </Popover>
+                  );
+                  return isMobile ? (
+                    <Drawer open={dateOpen} onOpenChange={setDateOpen}>
+                      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+                      <DrawerContent className="max-h-[85vh]">
+                        <DrawerHeader>
+                          <DrawerTitle className="font-display text-xl">Pick a date</DrawerTitle>
+                        </DrawerHeader>
+                        <div className="flex justify-center px-4 pb-8">{calendar}</div>
+                      </DrawerContent>
+                    </Drawer>
+                  ) : (
+                    <Popover open={dateOpen} onOpenChange={setDateOpen}>
+                      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                        {calendar}
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
               </div>
+
 
 
               {/* Slot */}
