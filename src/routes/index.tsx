@@ -2,7 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Instagram, MapPin, Mail, Phone, Sparkles, Check, Clock, Calendar as CalendarIcon, Copy, Loader2 } from "lucide-react";
+import { ArrowRight, Instagram, MapPin, Mail, Phone, Sparkles, Check, Clock, Calendar as CalendarIcon, Copy, Loader2, ChevronDown } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 import heroBg from "@/assets/african-woman.png.asset.json";
 import { toast } from "sonner";
 import { createBooking, getAvailability, getServices } from "@/lib/booking.functions";
@@ -283,11 +287,14 @@ function Why() {
 }
 
 function Booking() {
+  const isMobile = useIsMobile();
   const services = useQuery({ queryKey: ["services"], queryFn: () => getServices() });
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [date, setDate] = useState<string>(todayInNairobi());
   const [slot, setSlot] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<null | { cancelToken: string; serviceName: string; startsAt: string; endsAt: string }>(null);
+  const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
 
   const selectedService = useMemo(() => services.data?.find((s) => s.id === serviceId) ?? null, [services.data, serviceId]);
 
@@ -299,7 +306,42 @@ function Booking() {
     refetchOnWindowFocus: true,
   });
 
-  const dates = Array.from({ length: 14 }, (_, i) => addDaysISO(todayInNairobi(), i));
+  const dateObj = useMemo(() => {
+    const [y, m, d] = date.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }, [date]);
+  const today = useMemo(() => {
+    const [y, m, d] = todayInNairobi().split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }, []);
+  const maxDate = useMemo(() => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + 90);
+    return d;
+  }, [today]);
+
+  const renderServiceCard = (s: NonNullable<typeof services.data>[number], onPick?: () => void) => {
+    const active = s.id === serviceId;
+    return (
+      <button
+        key={s.id}
+        onClick={() => { setServiceId(s.id); setSlot(null); onPick?.(); }}
+        className={`text-left rounded-2xl border p-4 transition ${active ? "border-accent bg-accent/5" : "border-border/50 bg-background/40 hover:border-border"}`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="font-display text-lg">{s.name}</div>
+            <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5" /> {s.duration_minutes} min
+            </div>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {s.price_cents > 0 ? `${s.currency} ${(s.price_cents / 100).toLocaleString()}` : "On request"}
+          </div>
+        </div>
+      </button>
+    );
+  };
 
   return (
     <section id="booking" className="px-5 py-24 md:px-8 md:py-32">
@@ -322,30 +364,39 @@ function Booking() {
                 <SectionLabel n={1} title="Choose a service" />
                 {services.isLoading ? (
                   <div className="mt-4 h-24 animate-pulse rounded-xl bg-muted/30" />
+                ) : isMobile ? (
+                  <Drawer open={serviceSheetOpen} onOpenChange={setServiceSheetOpen}>
+                    <DrawerTrigger asChild>
+                      <button className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border">
+                        <div>
+                          <div className="text-xs uppercase tracking-wider text-muted-foreground">Service</div>
+                          <div className="mt-1 font-display text-lg">
+                            {selectedService ? selectedService.name : "Tap to choose"}
+                          </div>
+                          {selectedService && (
+                            <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
+                              <Clock className="h-3.5 w-3.5" /> {selectedService.duration_minutes} min
+                              {selectedService.price_cents > 0 && (
+                                <span>· {selectedService.currency} {(selectedService.price_cents / 100).toLocaleString()}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      </button>
+                    </DrawerTrigger>
+                    <DrawerContent className="max-h-[85vh]">
+                      <DrawerHeader>
+                        <DrawerTitle className="font-display text-xl">Choose a service</DrawerTitle>
+                      </DrawerHeader>
+                      <div className="overflow-y-auto px-4 pb-8 space-y-3">
+                        {services.data?.map((s) => renderServiceCard(s, () => setServiceSheetOpen(false)))}
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
                 ) : (
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    {services.data?.map((s) => {
-                      const active = s.id === serviceId;
-                      return (
-                        <button
-                          key={s.id}
-                          onClick={() => { setServiceId(s.id); setSlot(null); }}
-                          className={`text-left rounded-2xl border p-4 transition ${active ? "border-accent bg-accent/5" : "border-border/50 bg-background/40 hover:border-border"}`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="font-display text-lg">{s.name}</div>
-                              <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
-                                <Clock className="h-3.5 w-3.5" /> {s.duration_minutes} min
-                              </div>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {s.price_cents > 0 ? `${s.currency} ${(s.price_cents / 100).toLocaleString()}` : "On request"}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                    {services.data?.map((s) => renderServiceCard(s))}
                   </div>
                 )}
               </div>
@@ -353,25 +404,40 @@ function Booking() {
               {/* Date */}
               <div>
                 <SectionLabel n={2} title="Pick a date" />
-                <div className="mt-4 -mx-1 flex gap-2 overflow-x-auto pb-2 px-1">
-                  {dates.map((d) => {
-                    const dt = new Date(d + "T12:00:00Z");
-                    const day = new Intl.DateTimeFormat("en", { weekday: "short", timeZone: "UTC" }).format(dt);
-                    const num = dt.getUTCDate();
-                    const active = d === date;
-                    return (
-                      <button
-                        key={d}
-                        onClick={() => { setDate(d); setSlot(null); }}
-                        className={`min-w-[64px] rounded-xl border px-3 py-2 text-center transition ${active ? "border-cream bg-cream text-primary-foreground" : "border-border/50 bg-background/40 hover:border-border"}`}
-                      >
-                        <div className="text-[10px] uppercase tracking-wider opacity-80">{day}</div>
-                        <div className="text-lg font-semibold">{num}</div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <Popover open={dateOpen} onOpenChange={setDateOpen}>
+                  <PopoverTrigger asChild>
+                    <button className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border">
+                      <div className="flex items-center gap-3">
+                        <CalendarIcon className="h-5 w-5 text-accent" />
+                        <div>
+                          <div className="text-xs uppercase tracking-wider text-muted-foreground">Date</div>
+                          <div className="mt-0.5 font-display text-lg">
+                            {new Intl.DateTimeFormat("en", { weekday: "long", day: "numeric", month: "long" }).format(dateObj)}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateObj}
+                      onSelect={(d) => {
+                        if (!d) return;
+                        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                        setDate(iso);
+                        setSlot(null);
+                        setDateOpen(false);
+                      }}
+                      disabled={{ before: today, after: maxDate }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
+
 
               {/* Slot */}
               <div>
