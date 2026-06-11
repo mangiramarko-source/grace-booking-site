@@ -364,7 +364,12 @@ function Booking() {
                   <div className="mt-4 h-24 animate-pulse rounded-xl bg-muted/30" />
                 ) : (() => {
                   const trigger = (
-                    <button className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border">
+                    <button
+                      type="button"
+                      onClick={() => setServiceSheetOpen((v) => !v)}
+                      aria-expanded={serviceSheetOpen}
+                      className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border"
+                    >
                       <div className="min-w-0">
                         <div className="text-xs uppercase tracking-wider text-muted-foreground">Service</div>
                         <div className="mt-1 font-display text-lg truncate">
@@ -379,7 +384,7 @@ function Booking() {
                           </div>
                         )}
                       </div>
-                      <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <ChevronDown className={`h-5 w-5 text-muted-foreground shrink-0 transition-transform duration-300 ${serviceSheetOpen ? "rotate-180" : ""}`} />
                     </button>
                   );
                   return isMobile ? (
@@ -395,18 +400,20 @@ function Booking() {
                       </DrawerContent>
                     </Drawer>
                   ) : (
-                    <Popover open={serviceSheetOpen} onOpenChange={setServiceSheetOpen}>
-                      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-                      <PopoverContent
-                        align="start"
-                        sideOffset={8}
-                        className="p-4 pointer-events-auto w-[min(92vw,640px)] max-h-[70vh] overflow-y-auto"
+                    <div>
+                      {trigger}
+                      <div
+                        className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out ${serviceSheetOpen ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0 mt-0"}`}
                       >
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          {services.data?.map((s) => renderServiceCard(s, () => setServiceSheetOpen(false)))}
+                        <div className="overflow-hidden">
+                          <div className="rounded-2xl border border-border/50 bg-background/40 p-4">
+                            <div className="grid gap-3 sm:grid-cols-2 max-h-[60vh] overflow-y-auto">
+                              {services.data?.map((s) => renderServiceCard(s, () => setServiceSheetOpen(false)))}
+                            </div>
+                          </div>
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                      </div>
+                    </div>
                   );
                 })()}
               </div>
