@@ -326,7 +326,7 @@ function Booking() {
       <button
         key={s.id}
         onClick={() => { setServiceId(s.id); setSlot(null); onPick?.(); }}
-        className={`text-left rounded-2xl border p-4 transition h-[88px] flex flex-col justify-between ${active ? "border-accent bg-accent/5" : "border-border/50 bg-background/40 hover:border-border"}`}
+        className={`w-full text-left rounded-2xl border p-4 transition h-[88px] flex flex-col justify-between ${active ? "border-accent bg-accent/5" : "border-border/50 bg-background/40 hover:border-border"}`}
       >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="font-display text-base leading-tight truncate min-w-0">{s.name}</div>
