@@ -326,18 +326,16 @@ function Booking() {
       <button
         key={s.id}
         onClick={() => { setServiceId(s.id); setSlot(null); onPick?.(); }}
-        className={`text-left rounded-2xl border p-4 transition ${active ? "border-accent bg-accent/5" : "border-border/50 bg-background/40 hover:border-border"}`}
+        className={`text-left rounded-2xl border p-4 transition h-[88px] flex flex-col justify-between ${active ? "border-accent bg-accent/5" : "border-border/50 bg-background/40 hover:border-border"}`}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-display text-lg">{s.name}</div>
-            <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5" /> {s.duration_minutes} min
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+          <div className="font-display text-base leading-tight truncate min-w-0">{s.name}</div>
+          <div className="text-sm text-muted-foreground shrink-0 tabular-nums">
             {s.price_cents > 0 ? `${s.currency} ${(s.price_cents / 100).toLocaleString()}` : "On request"}
           </div>
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5 shrink-0" /> {s.duration_minutes} min
         </div>
       </button>
     );
