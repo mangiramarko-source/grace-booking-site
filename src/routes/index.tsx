@@ -362,41 +362,53 @@ function Booking() {
                 <SectionLabel n={1} title="Choose a service" />
                 {services.isLoading ? (
                   <div className="mt-4 h-24 animate-pulse rounded-xl bg-muted/30" />
-                ) : isMobile ? (
-                  <Drawer open={serviceSheetOpen} onOpenChange={setServiceSheetOpen}>
-                    <DrawerTrigger asChild>
-                      <button className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border">
-                        <div>
-                          <div className="text-xs uppercase tracking-wider text-muted-foreground">Service</div>
-                          <div className="mt-1 font-display text-lg">
-                            {selectedService ? selectedService.name : "Tap to choose"}
-                          </div>
-                          {selectedService && (
-                            <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
-                              <Clock className="h-3.5 w-3.5" /> {selectedService.duration_minutes} min
-                              {selectedService.price_cents > 0 && (
-                                <span>· {selectedService.currency} {(selectedService.price_cents / 100).toLocaleString()}</span>
-                              )}
-                            </div>
-                          )}
+                ) : (() => {
+                  const trigger = (
+                    <button className="mt-4 w-full flex items-center justify-between rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-left hover:border-border">
+                      <div className="min-w-0">
+                        <div className="text-xs uppercase tracking-wider text-muted-foreground">Service</div>
+                        <div className="mt-1 font-display text-lg truncate">
+                          {selectedService ? selectedService.name : "Tap to choose"}
                         </div>
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      </button>
-                    </DrawerTrigger>
-                    <DrawerContent className="max-h-[85vh]">
-                      <DrawerHeader>
-                        <DrawerTitle className="font-display text-xl">Choose a service</DrawerTitle>
-                      </DrawerHeader>
-                      <div className="overflow-y-auto px-4 pb-8 space-y-3">
-                        {services.data?.map((s) => renderServiceCard(s, () => setServiceSheetOpen(false)))}
+                        {selectedService && (
+                          <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5" /> {selectedService.duration_minutes} min
+                            {selectedService.price_cents > 0 && (
+                              <span>· {selectedService.currency} {(selectedService.price_cents / 100).toLocaleString()}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </DrawerContent>
-                  </Drawer>
-                ) : (
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    {services.data?.map((s) => renderServiceCard(s))}
-                  </div>
-                )}
+                      <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />
+                    </button>
+                  );
+                  return isMobile ? (
+                    <Drawer open={serviceSheetOpen} onOpenChange={setServiceSheetOpen}>
+                      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+                      <DrawerContent className="max-h-[85vh]">
+                        <DrawerHeader>
+                          <DrawerTitle className="font-display text-xl">Choose a service</DrawerTitle>
+                        </DrawerHeader>
+                        <div className="overflow-y-auto px-4 pb-8 space-y-3">
+                          {services.data?.map((s) => renderServiceCard(s, () => setServiceSheetOpen(false)))}
+                        </div>
+                      </DrawerContent>
+                    </Drawer>
+                  ) : (
+                    <Popover open={serviceSheetOpen} onOpenChange={setServiceSheetOpen}>
+                      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        sideOffset={8}
+                        className="p-4 pointer-events-auto w-[min(92vw,640px)] max-h-[70vh] overflow-y-auto"
+                      >
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {services.data?.map((s) => renderServiceCard(s, () => setServiceSheetOpen(false)))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
               </div>
 
               {/* Date */}
