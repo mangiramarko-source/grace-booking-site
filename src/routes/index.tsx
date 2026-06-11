@@ -363,6 +363,7 @@ function Booking() {
                 {services.isLoading ? (
                   <div className="mt-4 h-24 animate-pulse rounded-xl bg-muted/30" />
                 ) : (() => {
+                  const trigger = (
                     <button
                       type="button"
                       onClick={() => setServiceSheetOpen((v) => !v)}
