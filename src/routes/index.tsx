@@ -475,37 +475,8 @@ function Booking() {
                         </DrawerHeader>
                         <div className="flex-1 overflow-y-auto px-4 pb-2">
                           {mobileCalendar}
-                          <div className="border-t border-border/50 mt-4 pt-4">
-                            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                              {new Intl.DateTimeFormat("en", { weekday: "long", day: "numeric", month: "long" }).format(dateObj)}
-                            </div>
-                            {!serviceId ? (
-                              <p className="text-sm text-muted-foreground">​</p>
-                            ) : availability.isLoading ? (
-                              <div className="h-10 animate-pulse rounded-lg bg-muted/30" />
-                            ) : reason === "closed" ? (
-                              <p className="text-sm text-muted-foreground">Closed this day.</p>
-                            ) : reason === "blocked" ? (
-                              <p className="text-sm text-muted-foreground">The studio is unavailable this date.</p>
-                            ) : slotsCount === 0 ? (
-                              <p className="text-sm text-muted-foreground">Fully booked. Try another date.</p>
-                            ) : (
-                              <>
-                                <p className="text-sm text-foreground/90 mb-2">{slotsCount} time{slotsCount === 1 ? "" : "s"} available</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {previewSlots.map((iso) => (
-                                    <span key={iso} className="rounded-md border border-border/50 bg-background/40 px-2.5 py-1 text-xs text-foreground/80">
-                                      {formatNairobi(iso, { hour: "2-digit", minute: "2-digit", hour12: false })}
-                                    </span>
-                                  ))}
-                                  {slotsCount > previewSlots.length && (
-                                    <span className="text-xs text-muted-foreground self-center">+{slotsCount - previewSlots.length} more</span>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
                         </div>
+
                         <div className="shrink-0 border-t border-border/50 bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
                           <DrawerClose asChild>
                             <button className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-medium text-accent-foreground">
