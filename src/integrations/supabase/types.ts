@@ -109,6 +109,39 @@ export type Database = {
         }
         Relationships: []
       }
+      client_notes: {
+        Row: {
+          allergies: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string | null
+          hair_history: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          allergies?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name?: string | null
+          hair_history?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allergies?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string | null
+          hair_history?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string
