@@ -161,3 +161,154 @@ export const adminRemoveBlocked = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ===== Appointments management =====
+export const adminUpdateAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      id: z.string().uuid(),
+      starts_at: z.string().datetime().optional(),
+      service_id: z.string().uuid().optional(),
+      customer_name: z.string().trim().min(1).max(120).optional(),
+      customer_email: z.string().trim().email().max(255).optional(),
+      customer_phone: z.string().trim().max(40).nullable().optional(),
+      notes: z.string().trim().max(2000).nullable().optional(),
+      status: z.enum(["confirmed", "cancelled", "completed"]).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = {};
+    if (data.customer_name !== undefined) patch.customer_name = data.customer_name;
+    if (data.customer_email !== undefined) patch.customer_email = data.customer_email;
+    if (data.customer_phone !== undefined) patch.customer_phone = data.customer_phone;
+    if (data.notes !== undefined) patch.notes = data.notes;
+    if (data.status !== undefined) patch.status = data.status;
+
+    // If rescheduling or changing service we must recompute ends_at
+    if (data.starts_at || data.service_id) {
+      const { data: cur } = await supabaseAdmin
+        .from("appointments").select("service_id, starts_at").eq("id", data.id).maybeSingle();
+      if (!cur) throw new Error("Appointment not found");
+      const svcId = data.service_id ?? cur.service_id;
+      const { data: svc } = await supabaseAdmin
+        .from("services").select("duration_minutes").eq("id", svcId).maybeSingle();
+      if (!svc) throw new Error("Service not found");
+      const startsAt = new Date(data.starts_at ?? cur.starts_at);
+      const endsAt = new Date(startsAt.getTime() + svc.duration_minutes * 60 * 1000);
+      patch.service_id = svcId;
+      patch.starts_at = startsAt.toISOString();
+      patch.ends_at = endsAt.toISOString();
+    }
+
+    const { error } = await supabaseAdmin.from("appointments").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminCancelAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("appointments").update({ status: "cancelled" }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ===== Clients =====
+export const adminListClients = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: appts, error } = await supabaseAdmin
+      .from("appointments")
+      .select("customer_email, customer_name, customer_phone, starts_at, status, services(price_cents)")
+      .order("starts_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const { data: notes } = await supabaseAdmin.from("client_notes").select("*");
+    const noteMap = new Map((notes ?? []).map((n) => [n.customer_email.toLowerCase(), n]));
+    const map = new Map<string, any>();
+    for (const a of appts ?? []) {
+      const key = (a.customer_email || "").toLowerCase();
+      if (!key) continue;
+      const existing = map.get(key);
+      // @ts-ignore relation
+      const cents = a.status !== "cancelled" ? (a.services?.price_cents ?? 0) : 0;
+      if (!existing) {
+        map.set(key, {
+          email: a.customer_email,
+          name: a.customer_name,
+          phone: a.customer_phone,
+          visits: 1,
+          last_visit: a.starts_at,
+          spend_cents: cents,
+          note: noteMap.get(key) ?? null,
+        });
+      } else {
+        existing.visits += 1;
+        existing.spend_cents += cents;
+        if (new Date(a.starts_at) > new Date(existing.last_visit)) {
+          existing.last_visit = a.starts_at;
+          existing.name = a.customer_name || existing.name;
+          existing.phone = a.customer_phone || existing.phone;
+        }
+      }
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      new Date(b.last_visit).getTime() - new Date(a.last_visit).getTime());
+  });
+
+export const adminUpsertClientNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      customer_email: z.string().trim().email(),
+      customer_name: z.string().trim().max(120).nullable().optional(),
+      notes: z.string().trim().max(4000).nullable().optional(),
+      allergies: z.string().trim().max(1000).nullable().optional(),
+      hair_history: z.string().trim().max(4000).nullable().optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("client_notes")
+      .upsert({
+        customer_email: data.customer_email.toLowerCase(),
+        customer_name: data.customer_name ?? null,
+        notes: data.notes ?? null,
+        allergies: data.allergies ?? null,
+        hair_history: data.hair_history ?? null,
+      }, { onConflict: "customer_email" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ===== Revenue =====
+export const adminRevenueSummary = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("appointments")
+      .select("starts_at, status, services(price_cents, currency)")
+      .neq("status", "cancelled")
+      .order("starts_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((a) => ({
+      starts_at: a.starts_at,
+      status: a.status,
+      // @ts-ignore
+      price_cents: a.services?.price_cents ?? 0,
+      // @ts-ignore
+      currency: a.services?.currency ?? "KES",
+    }));
+  });
