@@ -205,6 +205,35 @@ export const adminUpdateAppointment = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin.from("appointments").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    // Sync change to Google Calendar
+    try {
+      const { data: full } = await supabaseAdmin
+        .from("appointments")
+        .select("google_event_id, customer_name, customer_email, starts_at, ends_at, status, services(name)")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (full?.google_event_id) {
+        // @ts-ignore
+        const svcName: string = full.services?.name ?? "Appointment";
+        if (full.status === "cancelled") {
+          const { cancelCalendarEvent } = await import("@/lib/google-calendar.server");
+          await cancelCalendarEvent(full.google_event_id);
+        } else {
+          const { updateCalendarEvent } = await import("@/lib/google-calendar.server");
+          await updateCalendarEvent(full.google_event_id, {
+            summary: `${svcName} — ${full.customer_name}`,
+            startsAt: full.starts_at,
+            endsAt: full.ends_at,
+            attendeeEmail: full.customer_email,
+            attendeeName: full.customer_name,
+            status: "confirmed",
+          });
+        }
+      }
+    } catch (e) {
+      console.error("[admin] gcal sync failed", e);
+    }
     return { ok: true };
   });
 
@@ -214,11 +243,22 @@ export const adminCancelAppointment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: appt } = await supabaseAdmin
+      .from("appointments").select("google_event_id").eq("id", data.id).maybeSingle();
     const { error } = await supabaseAdmin
       .from("appointments").update({ status: "cancelled" }).eq("id", data.id);
     if (error) throw new Error(error.message);
+    if (appt?.google_event_id) {
+      try {
+        const { cancelCalendarEvent } = await import("@/lib/google-calendar.server");
+        await cancelCalendarEvent(appt.google_event_id);
+      } catch (e) {
+        console.error("[admin] gcal cancel failed", e);
+      }
+    }
     return { ok: true };
   });
+
 
 // ===== Clients =====
 export const adminListClients = createServerFn({ method: "POST" })
