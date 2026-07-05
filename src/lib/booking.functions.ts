@@ -125,6 +125,31 @@ export const createBooking = createServerFn({ method: "POST" })
       .single();
     if (iErr) throw new Error(iErr.message);
 
+    // Sync to Google Calendar (best-effort; failure does not block booking)
+    try {
+      const { createCalendarEvent } = await import("@/lib/google-calendar.server");
+      const eventId = await createCalendarEvent({
+        summary: `${service.name} — ${data.customerName}`,
+        description: [
+          `Service: ${service.name}`,
+          `Client: ${data.customerName}`,
+          `Email: ${data.customerEmail}`,
+          data.customerPhone ? `Phone: ${data.customerPhone}` : null,
+          data.notes ? `Notes: ${data.notes}` : null,
+        ].filter(Boolean).join("\n"),
+        startsAt: inserted.starts_at,
+        endsAt: inserted.ends_at,
+        attendeeEmail: data.customerEmail,
+        attendeeName: data.customerName,
+        status: "confirmed",
+      });
+      if (eventId) {
+        await supabaseAdmin.from("appointments").update({ google_event_id: eventId }).eq("id", inserted.id);
+      }
+    } catch (e) {
+      console.error("[booking] gcal sync failed", e);
+    }
+
     return {
       id: inserted.id,
       cancelToken: inserted.cancel_token,
@@ -133,6 +158,7 @@ export const createBooking = createServerFn({ method: "POST" })
       serviceName: service.name,
     };
   });
+
 
 export const getBookingByToken = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ token: z.string().uuid() }).parse(input))
@@ -165,13 +191,28 @@ export const cancelBooking = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ token: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: appt } = await supabaseAdmin
+      .from("appointments")
+      .select("id, google_event_id")
+      .eq("cancel_token", data.token)
+      .maybeSingle();
     const { error } = await supabaseAdmin
       .from("appointments")
       .update({ status: "cancelled" })
       .eq("cancel_token", data.token);
     if (error) throw new Error(error.message);
+
+    if (appt?.google_event_id) {
+      try {
+        const { cancelCalendarEvent } = await import("@/lib/google-calendar.server");
+        await cancelCalendarEvent(appt.google_event_id);
+      } catch (e) {
+        console.error("[booking] gcal cancel failed", e);
+      }
+    }
     return { ok: true };
   });
+
 
 export const rescheduleBooking = createServerFn({ method: "POST" })
   .inputValidator((input) =>
@@ -184,7 +225,7 @@ export const rescheduleBooking = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: appt, error } = await supabaseAdmin
       .from("appointments")
-      .select("id, service_id, status, services(duration_minutes)")
+      .select("id, service_id, status, google_event_id, customer_name, customer_email, services(name, duration_minutes)")
       .eq("cancel_token", data.token)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -193,6 +234,8 @@ export const rescheduleBooking = createServerFn({ method: "POST" })
 
     // @ts-ignore
     const duration: number = appt.services?.duration_minutes;
+    // @ts-ignore
+    const serviceName: string = appt.services?.name;
     const startsAt = new Date(data.startsAt);
     const endsAt = new Date(startsAt.getTime() + duration * 60 * 1000);
     if (startsAt.getTime() < Date.now()) throw new Error("Cannot reschedule to the past");
@@ -213,5 +256,22 @@ export const rescheduleBooking = createServerFn({ method: "POST" })
       .update({ starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString() })
       .eq("id", appt.id);
     if (uErr) throw new Error(uErr.message);
+
+    if (appt.google_event_id) {
+      try {
+        const { updateCalendarEvent } = await import("@/lib/google-calendar.server");
+        await updateCalendarEvent(appt.google_event_id, {
+          summary: `${serviceName} — ${appt.customer_name}`,
+          startsAt: startsAt.toISOString(),
+          endsAt: endsAt.toISOString(),
+          attendeeEmail: appt.customer_email,
+          attendeeName: appt.customer_name,
+          status: "confirmed",
+        });
+      } catch (e) {
+        console.error("[booking] gcal reschedule failed", e);
+      }
+    }
     return { ok: true, startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() };
   });
+
