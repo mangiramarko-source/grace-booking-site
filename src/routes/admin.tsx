@@ -290,6 +290,18 @@ function AppointmentEditor({ appt, onClose }: { appt: any; onClose: () => void }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
   };
 
+  const doRetrySync = async () => {
+    setRetrying(true);
+    try {
+      await retrySync({ data: { id: appt.id } });
+      toast.success("Calendar sync retried");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Retry failed");
+      refetch();
+    } finally { setRetrying(false); }
+  };
+
   const phoneDigits = (form.customer_phone || "").replace(/[^\d]/g, "");
   const waUrl = phoneDigits
     ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(`Hi ${form.customer_name}, regarding your appointment…`)}`
