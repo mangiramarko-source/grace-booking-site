@@ -143,11 +143,18 @@ export const createBooking = createServerFn({ method: "POST" })
         attendeeName: data.customerName,
         status: "confirmed",
       });
-      if (eventId) {
-        await supabaseAdmin.from("appointments").update({ google_event_id: eventId }).eq("id", inserted.id);
-      }
+      await supabaseAdmin.from("appointments").update({
+        google_event_id: eventId ?? null,
+        gcal_sync_status: eventId ? "created" : "failed",
+        gcal_sync_error: eventId ? null : "Calendar API returned no event id",
+        gcal_synced_at: new Date().toISOString(),
+      } as never).eq("id", inserted.id);
     } catch (e) {
       console.error("[booking] gcal sync failed", e);
+      await supabaseAdmin.from("appointments").update({
+        gcal_sync_status: "failed",
+        gcal_sync_error: e instanceof Error ? e.message : String(e),
+      } as never).eq("id", inserted.id);
     }
 
     return {
