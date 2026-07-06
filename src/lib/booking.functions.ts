@@ -284,8 +284,17 @@ export const rescheduleBooking = createServerFn({ method: "POST" })
           attendeeName: appt.customer_name,
           status: "confirmed",
         });
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "updated",
+          gcal_sync_error: null,
+          gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
       } catch (e) {
         console.error("[booking] gcal reschedule failed", e);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "failed",
+          gcal_sync_error: e instanceof Error ? e.message : String(e),
+        } as never).eq("id", appt.id);
       }
     }
     return { ok: true, startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() };
