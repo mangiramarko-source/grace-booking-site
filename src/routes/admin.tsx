@@ -353,6 +353,16 @@ function AppointmentEditor({ appt, onClose }: { appt: any; onClose: () => void }
             <button onClick={doCancel} className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10">
               <Trash2 className="h-3.5 w-3.5" /> Cancel
             </button>
+            {appt.gcal_sync_status === "failed" && (
+              <button
+                onClick={doRetrySync}
+                disabled={retrying}
+                title={appt.gcal_sync_error ?? undefined}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs hover:bg-background/60 disabled:opacity-60"
+              >
+                {retrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Retry sync
+              </button>
+            )}
           </div>
           <button disabled={saving} onClick={save} className="inline-flex items-center gap-1.5 rounded-full bg-cream px-4 py-2 text-sm text-primary-foreground disabled:opacity-60">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
