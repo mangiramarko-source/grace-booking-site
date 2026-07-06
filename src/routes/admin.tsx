@@ -11,8 +11,8 @@ import {
 import {
   adminAddBlocked, adminCancelAppointment, adminDeleteService, adminListAppointments,
   adminListBlocked, adminListClients, adminListHours, adminListServices, adminRemoveBlocked,
-  adminRevenueSummary, adminUpdateAppointment, adminUpdateHours, adminUpsertClientNote,
-  adminUpsertService, claimAdminIfFirst,
+  adminRetryGcalSync, adminRevenueSummary, adminUpdateAppointment, adminUpdateHours,
+  adminUpsertClientNote, adminUpsertService, claimAdminIfFirst,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
