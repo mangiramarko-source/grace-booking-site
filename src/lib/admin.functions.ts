@@ -219,6 +219,9 @@ export const adminUpdateAppointment = createServerFn({ method: "POST" })
         if (full.status === "cancelled") {
           const { cancelCalendarEvent } = await import("@/lib/google-calendar.server");
           await cancelCalendarEvent(full.google_event_id);
+          await supabaseAdmin.from("appointments").update({
+            gcal_sync_status: "cancelled", gcal_sync_error: null, gcal_synced_at: new Date().toISOString(),
+          } as never).eq("id", data.id);
         } else {
           const { updateCalendarEvent } = await import("@/lib/google-calendar.server");
           await updateCalendarEvent(full.google_event_id, {
@@ -229,10 +232,17 @@ export const adminUpdateAppointment = createServerFn({ method: "POST" })
             attendeeName: full.customer_name,
             status: "confirmed",
           });
+          await supabaseAdmin.from("appointments").update({
+            gcal_sync_status: "updated", gcal_sync_error: null, gcal_synced_at: new Date().toISOString(),
+          } as never).eq("id", data.id);
         }
       }
     } catch (e) {
       console.error("[admin] gcal sync failed", e);
+      await supabaseAdmin.from("appointments").update({
+        gcal_sync_status: "failed",
+        gcal_sync_error: e instanceof Error ? e.message : String(e),
+      } as never).eq("id", data.id);
     }
     return { ok: true };
   });
