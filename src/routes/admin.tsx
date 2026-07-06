@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, ClipboardList,
-  Loader2, LogOut, MessageCircle, Plus, Save, Scissors, Trash2, TrendingUp, Users, X,
+  Loader2, LogOut, MessageCircle, Plus, RefreshCw, Save, Scissors, Trash2, TrendingUp, Users, X,
 } from "lucide-react";
 import {
   adminAddBlocked, adminCancelAppointment, adminDeleteService, adminListAppointments,
