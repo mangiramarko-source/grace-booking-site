@@ -33,7 +33,7 @@ export const adminListAppointments = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("appointments")
-      .select("id, customer_name, customer_email, customer_phone, notes, starts_at, ends_at, status, services(name)")
+      .select("id, customer_name, customer_email, customer_phone, notes, starts_at, ends_at, status, gcal_sync_status, gcal_sync_error, gcal_synced_at, google_event_id, services(name)")
       .order("starts_at", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []).map((a) => ({
