@@ -6,13 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, ClipboardList,
-  Loader2, LogOut, MessageCircle, Plus, Save, Scissors, Trash2, TrendingUp, Users, X,
+  Loader2, LogOut, MessageCircle, Plus, RefreshCw, Save, Scissors, Trash2, TrendingUp, Users, X,
 } from "lucide-react";
 import {
   adminAddBlocked, adminCancelAppointment, adminDeleteService, adminListAppointments,
   adminListBlocked, adminListClients, adminListHours, adminListServices, adminRemoveBlocked,
-  adminRevenueSummary, adminUpdateAppointment, adminUpdateHours, adminUpsertClientNote,
-  adminUpsertService, claimAdminIfFirst,
+  adminRetryGcalSync, adminRevenueSummary, adminUpdateAppointment, adminUpdateHours,
+  adminUpsertClientNote, adminUpsertService, claimAdminIfFirst,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
@@ -234,6 +234,8 @@ function AppointmentEditor({ appt, onClose }: { appt: any; onClose: () => void }
   const qc = useQueryClient();
   const update = useServerFn(adminUpdateAppointment);
   const cancel = useServerFn(adminCancelAppointment);
+  const retrySync = useServerFn(adminRetryGcalSync);
+  const [retrying, setRetrying] = useState(false);
   const startsLocal = useMemo(() => {
     const d = new Date(appt.starts_at);
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -288,6 +290,18 @@ function AppointmentEditor({ appt, onClose }: { appt: any; onClose: () => void }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
   };
 
+  const doRetrySync = async () => {
+    setRetrying(true);
+    try {
+      await retrySync({ data: { id: appt.id } });
+      toast.success("Calendar sync retried");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Retry failed");
+      refetch();
+    } finally { setRetrying(false); }
+  };
+
   const phoneDigits = (form.customer_phone || "").replace(/[^\d]/g, "");
   const waUrl = phoneDigits
     ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(`Hi ${form.customer_name}, regarding your appointment…`)}`
@@ -339,6 +353,16 @@ function AppointmentEditor({ appt, onClose }: { appt: any; onClose: () => void }
             <button onClick={doCancel} className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10">
               <Trash2 className="h-3.5 w-3.5" /> Cancel
             </button>
+            {appt.gcal_sync_status === "failed" && (
+              <button
+                onClick={doRetrySync}
+                disabled={retrying}
+                title={appt.gcal_sync_error ?? undefined}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs hover:bg-background/60 disabled:opacity-60"
+              >
+                {retrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Retry sync
+              </button>
+            )}
           </div>
           <button disabled={saving} onClick={save} className="inline-flex items-center gap-1.5 rounded-full bg-cream px-4 py-2 text-sm text-primary-foreground disabled:opacity-60">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save

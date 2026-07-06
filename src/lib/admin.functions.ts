@@ -276,6 +276,77 @@ export const adminCancelAppointment = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Retry Google Calendar sync for an appointment (create if no event, else update/cancel)
+export const adminRetryGcalSync = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: appt, error } = await supabaseAdmin
+      .from("appointments")
+      .select("id, google_event_id, customer_name, customer_email, customer_phone, notes, starts_at, ends_at, status, services(name)")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!appt) throw new Error("Appointment not found");
+    // @ts-ignore
+    const svcName: string = appt.services?.name ?? "Appointment";
+
+    try {
+      const gcal = await import("@/lib/google-calendar.server");
+      if (!appt.google_event_id) {
+        const eventId = await gcal.createCalendarEvent({
+          summary: `${svcName} — ${appt.customer_name}`,
+          description: [
+            `Service: ${svcName}`,
+            `Client: ${appt.customer_name}`,
+            `Email: ${appt.customer_email}`,
+            appt.customer_phone ? `Phone: ${appt.customer_phone}` : null,
+            appt.notes ? `Notes: ${appt.notes}` : null,
+          ].filter(Boolean).join("\n"),
+          startsAt: appt.starts_at,
+          endsAt: appt.ends_at,
+          attendeeEmail: appt.customer_email,
+          attendeeName: appt.customer_name,
+          status: appt.status === "cancelled" ? "cancelled" : "confirmed",
+        });
+        await supabaseAdmin.from("appointments").update({
+          google_event_id: eventId ?? null,
+          gcal_sync_status: eventId ? (appt.status === "cancelled" ? "cancelled" : "created") : "failed",
+          gcal_sync_error: eventId ? null : "Calendar API returned no event id",
+          gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
+        return { ok: !!eventId };
+      }
+      if (appt.status === "cancelled") {
+        await gcal.cancelCalendarEvent(appt.google_event_id);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "cancelled", gcal_sync_error: null, gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
+      } else {
+        await gcal.updateCalendarEvent(appt.google_event_id, {
+          summary: `${svcName} — ${appt.customer_name}`,
+          startsAt: appt.starts_at,
+          endsAt: appt.ends_at,
+          attendeeEmail: appt.customer_email,
+          attendeeName: appt.customer_name,
+          status: "confirmed",
+        });
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "updated", gcal_sync_error: null, gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
+      }
+      return { ok: true };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      await supabaseAdmin.from("appointments").update({
+        gcal_sync_status: "failed", gcal_sync_error: msg,
+      } as never).eq("id", appt.id);
+      throw new Error(msg);
+    }
+  });
+
 
 // ===== Clients =====
 export const adminListClients = createServerFn({ method: "POST" })
