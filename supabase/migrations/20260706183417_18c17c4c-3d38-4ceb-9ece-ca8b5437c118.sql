@@ -1,0 +1,1 @@
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS gcal_sync_status text NOT NULL DEFAULT 'pending', ADD COLUMN IF NOT EXISTS gcal_sync_error text, ADD COLUMN IF NOT EXISTS gcal_synced_at timestamptz;
