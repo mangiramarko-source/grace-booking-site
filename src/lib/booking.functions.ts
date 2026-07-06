@@ -213,8 +213,17 @@ export const cancelBooking = createServerFn({ method: "POST" })
       try {
         const { cancelCalendarEvent } = await import("@/lib/google-calendar.server");
         await cancelCalendarEvent(appt.google_event_id);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "cancelled",
+          gcal_sync_error: null,
+          gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
       } catch (e) {
         console.error("[booking] gcal cancel failed", e);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "failed",
+          gcal_sync_error: e instanceof Error ? e.message : String(e),
+        } as never).eq("id", appt.id);
       }
     }
     return { ok: true };
