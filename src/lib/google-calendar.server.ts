@@ -42,49 +42,40 @@ function buildEventBody(input: CalendarEventInput) {
 }
 
 export async function createCalendarEvent(input: CalendarEventInput): Promise<string | null> {
-  try {
-    const res = await fetch(`${GATEWAY_BASE}/calendars/${encodeURIComponent(CALENDAR_ID)}/events`, {
-      method: "POST",
-      headers: authHeaders(),
-      body: JSON.stringify(buildEventBody(input)),
-    });
-    if (!res.ok) {
-      console.error("[gcal] create failed", res.status, await res.text());
-      return null;
-    }
-    const data = (await res.json()) as { id?: string };
-    return data.id ?? null;
-  } catch (e) {
-    console.error("[gcal] create error", e);
-    return null;
+  const res = await fetch(`${GATEWAY_BASE}/calendars/${encodeURIComponent(CALENDAR_ID)}/events`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(buildEventBody(input)),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("[gcal] create failed", res.status, body);
+    throw new Error(`Calendar create failed [${res.status}]: ${body.slice(0, 300)}`);
   }
+  const data = (await res.json()) as { id?: string };
+  return data.id ?? null;
 }
 
 export async function updateCalendarEvent(eventId: string, input: CalendarEventInput): Promise<void> {
-  try {
-    const res = await fetch(
-      `${GATEWAY_BASE}/calendars/${encodeURIComponent(CALENDAR_ID)}/events/${encodeURIComponent(eventId)}`,
-      { method: "PATCH", headers: authHeaders(), body: JSON.stringify(buildEventBody(input)) },
-    );
-    if (!res.ok) console.error("[gcal] update failed", res.status, await res.text());
-  } catch (e) {
-    console.error("[gcal] update error", e);
+  const res = await fetch(
+    `${GATEWAY_BASE}/calendars/${encodeURIComponent(CALENDAR_ID)}/events/${encodeURIComponent(eventId)}`,
+    { method: "PATCH", headers: authHeaders(), body: JSON.stringify(buildEventBody(input)) },
+  );
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("[gcal] update failed", res.status, body);
+    throw new Error(`Calendar update failed [${res.status}]: ${body.slice(0, 300)}`);
   }
 }
 
 export async function cancelCalendarEvent(eventId: string): Promise<void> {
-  // Mark as cancelled (keeps history in calendar). Use DELETE if you prefer removal.
-  try {
-    const res = await fetch(
-      `${GATEWAY_BASE}/calendars/${encodeURIComponent(CALENDAR_ID)}/events/${encodeURIComponent(eventId)}`,
-      {
-        method: "PATCH",
-        headers: authHeaders(),
-        body: JSON.stringify({ status: "cancelled" }),
-      },
-    );
-    if (!res.ok) console.error("[gcal] cancel failed", res.status, await res.text());
-  } catch (e) {
-    console.error("[gcal] cancel error", e);
+  const res = await fetch(
+    `${GATEWAY_BASE}/calendars/${encodeURIComponent(CALENDAR_ID)}/events/${encodeURIComponent(eventId)}`,
+    { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ status: "cancelled" }) },
+  );
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("[gcal] cancel failed", res.status, body);
+    throw new Error(`Calendar cancel failed [${res.status}]: ${body.slice(0, 300)}`);
   }
 }
