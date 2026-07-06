@@ -234,6 +234,8 @@ function AppointmentEditor({ appt, onClose }: { appt: any; onClose: () => void }
   const qc = useQueryClient();
   const update = useServerFn(adminUpdateAppointment);
   const cancel = useServerFn(adminCancelAppointment);
+  const retrySync = useServerFn(adminRetryGcalSync);
+  const [retrying, setRetrying] = useState(false);
   const startsLocal = useMemo(() => {
     const d = new Date(appt.starts_at);
     const pad = (n: number) => String(n).padStart(2, "0");
