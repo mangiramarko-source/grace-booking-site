@@ -143,11 +143,18 @@ export const createBooking = createServerFn({ method: "POST" })
         attendeeName: data.customerName,
         status: "confirmed",
       });
-      if (eventId) {
-        await supabaseAdmin.from("appointments").update({ google_event_id: eventId }).eq("id", inserted.id);
-      }
+      await supabaseAdmin.from("appointments").update({
+        google_event_id: eventId ?? null,
+        gcal_sync_status: eventId ? "created" : "failed",
+        gcal_sync_error: eventId ? null : "Calendar API returned no event id",
+        gcal_synced_at: new Date().toISOString(),
+      } as never).eq("id", inserted.id);
     } catch (e) {
       console.error("[booking] gcal sync failed", e);
+      await supabaseAdmin.from("appointments").update({
+        gcal_sync_status: "failed",
+        gcal_sync_error: e instanceof Error ? e.message : String(e),
+      } as never).eq("id", inserted.id);
     }
 
     return {
@@ -206,8 +213,17 @@ export const cancelBooking = createServerFn({ method: "POST" })
       try {
         const { cancelCalendarEvent } = await import("@/lib/google-calendar.server");
         await cancelCalendarEvent(appt.google_event_id);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "cancelled",
+          gcal_sync_error: null,
+          gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
       } catch (e) {
         console.error("[booking] gcal cancel failed", e);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "failed",
+          gcal_sync_error: e instanceof Error ? e.message : String(e),
+        } as never).eq("id", appt.id);
       }
     }
     return { ok: true };
@@ -268,8 +284,17 @@ export const rescheduleBooking = createServerFn({ method: "POST" })
           attendeeName: appt.customer_name,
           status: "confirmed",
         });
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "updated",
+          gcal_sync_error: null,
+          gcal_synced_at: new Date().toISOString(),
+        } as never).eq("id", appt.id);
       } catch (e) {
         console.error("[booking] gcal reschedule failed", e);
+        await supabaseAdmin.from("appointments").update({
+          gcal_sync_status: "failed",
+          gcal_sync_error: e instanceof Error ? e.message : String(e),
+        } as never).eq("id", appt.id);
       }
     }
     return { ok: true, startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() };

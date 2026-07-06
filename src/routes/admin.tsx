@@ -32,6 +32,22 @@ const money = (cents: number, currency = "KES") =>
 
 type Tab = "overview" | "clients" | "services" | "revenue" | "settings";
 
+function GcalBadge({ status, title }: { status?: string | null; title?: string }) {
+  const s = status ?? "pending";
+  const cls = s === "created" || s === "updated"
+    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+    : s === "cancelled"
+    ? "bg-muted text-muted-foreground"
+    : s === "failed"
+    ? "bg-destructive/15 text-destructive"
+    : "bg-amber-500/15 text-amber-700 dark:text-amber-400";
+  return (
+    <span title={title} className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${cls}`}>
+      gcal: {s}
+    </span>
+  );
+}
+
 function AdminPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
@@ -199,7 +215,10 @@ function BookingOverview() {
                       <div className="text-xs text-muted-foreground">{a.service_name}</div>
                     </div>
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${a.status === "cancelled" ? "bg-destructive/15 text-destructive" : a.status === "completed" ? "bg-accent/15 text-accent" : "bg-cream/40 text-foreground"}`}>{a.status}</span>
+                  <div className="flex items-center gap-1.5">
+                    <GcalBadge status={a.gcal_sync_status} title={a.gcal_sync_error ?? undefined} />
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${a.status === "cancelled" ? "bg-destructive/15 text-destructive" : a.status === "completed" ? "bg-accent/15 text-accent" : "bg-cream/40 text-foreground"}`}>{a.status}</span>
+                  </div>
                 </button>
               ))}
           </div>

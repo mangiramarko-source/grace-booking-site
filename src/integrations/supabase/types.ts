@@ -22,6 +22,9 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           ends_at: string
+          gcal_sync_error: string | null
+          gcal_sync_status: string
+          gcal_synced_at: string | null
           google_event_id: string | null
           id: string
           notes: string | null
@@ -36,6 +39,9 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           ends_at: string
+          gcal_sync_error?: string | null
+          gcal_sync_status?: string
+          gcal_synced_at?: string | null
           google_event_id?: string | null
           id?: string
           notes?: string | null
@@ -50,6 +56,9 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           ends_at?: string
+          gcal_sync_error?: string | null
+          gcal_sync_status?: string
+          gcal_synced_at?: string | null
           google_event_id?: string | null
           id?: string
           notes?: string | null
