@@ -71,7 +71,7 @@ function Index() {
 
 function BackgroundLayer() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 glow-bg" />
+    <div aria-hidden className="site-background pointer-events-none fixed inset-0 z-0" />
   );
 }
 
