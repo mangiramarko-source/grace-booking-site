@@ -101,7 +101,7 @@
 
 @media (max-width: 767px) {
   .site-background::before {
-    background-size: 100% auto;
+    background-size: auto 100%;
   }
 }
 
