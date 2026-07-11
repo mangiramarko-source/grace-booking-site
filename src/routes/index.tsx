@@ -7,7 +7,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import heroBg from "@/assets/african-woman.png.asset.json";
 import { toast } from "sonner";
 import { createBooking, getAvailability, getServices } from "@/lib/booking.functions";
 
